@@ -21,17 +21,15 @@ function Header({ isConnected }) {
       display: 'flex',
       justifyContent: 'space-between'
     }}>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <div onClick={() => navigate('/main')} style={{ cursor: 'pointer' }}>
-          <h6>Main</h6>
-        </div>
-        <div onClick={() => navigate('/playground')} style={{ cursor: 'pointer' }}>
-          <h6>Playground</h6>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div onClick={() => navigate('/main')} style={{ margin: '0px', cursor: 'pointer' }}>
+          Main
         </div>
       </div>
       <div style={{ display: 'flex', gap: '10px' }}>
         <button
           style={{
+            height: '30px',
             backgroundColor: isConnected ? '#007bff' : 'white',
             color: isConnected ? 'white' : '#007bff',
             border: '1px solid #007bff',
@@ -44,6 +42,7 @@ function Header({ isConnected }) {
         </button>
         <button
           style={{
+            height: '30px',
             backgroundColor: isConnected ? 'white' : '#007bff',
             color: isConnected ? '#007bff' : 'white',
             border: '1px solid #007bff',

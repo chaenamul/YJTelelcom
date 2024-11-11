@@ -1,29 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { socket, Event } from 'socket/socket';
 
 const ChatBox = () => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [username, setUsername] = useState("");  // Username state
+  const bottomRef = useRef(null);
 
-  // Listen for incoming messages when component mounts
+  // Listen for incoming messages
   useEffect(() => {
-    // Listen for initial username from server
-    socket.on('set_username', (data) => {
-      setUsername(data.username);  // Set the initial username
-    });
-
     // Event listener for receiving messages
     socket.on(Event.RECEIVE_MESSAGE, (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
+      setTimeout(() => {
+    	  bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 10);
     });
 
     // Clean up listeners on unmount
     return () => {
-      socket.off('set_username');
       socket.off(Event.RECEIVE_MESSAGE);
     };
-  }, []);
+  }, [messages]);
+  
+  // Listen for username update
+  useEffect(() => {
+    // Listen for initial username from server
+    socket.on(Event.SET_USERNAME, (data) => {
+      setUsername(data.username);  // Set the initial username
+    });
+
+    // Clean up listeners on unmount
+    return () => {
+      socket.off(Event.SET_USERNAME);
+    };
+  }, [username]);
 
   // Handle message change with Shift+Enter for new lines
   const handleChange = (e) => {
@@ -49,7 +60,7 @@ const ChatBox = () => {
 
   // Emit the change_username event to the server
   const handleUsernameBlur = () => {
-    socket.emit('change_username', username);  // Emit username change to server
+    socket.emit(Event.CHANGE_USERNAME, username);  // Emit username change to server
   };
 
   // Send the message to the server
@@ -68,7 +79,8 @@ const ChatBox = () => {
           border: "1px solid #ccc",
           padding: "10px",
           marginBottom: "10px",
-          height: "200px",
+          height: "60vh",
+          height: "60dvh",
           overflowY: "scroll"
         }}
       >
@@ -77,6 +89,7 @@ const ChatBox = () => {
             <strong>{msg.sender}:</strong> {msg.text}
           </div>
         ))}
+        <div ref={bottomRef} />
       </div>
       <div>
         <label>Username:</label>
@@ -89,6 +102,7 @@ const ChatBox = () => {
       </div>
       <textarea
         value={message}
+        disabled={socket.disconnected}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder="Type your message..."
