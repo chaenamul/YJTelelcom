@@ -10,5 +10,6 @@ export const socket = io(URL, {
 export const Event = Object.freeze({
   SEND_MESSAGE: "send_message",
   RECEIVE_MESSAGE: "receive_message",
-  CHANGE_USERNAME: "change_username"
+  CHANGE_USERNAME: "change_username",
+  SET_USERNAME: "set_username"
 });

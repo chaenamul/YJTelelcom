@@ -4,7 +4,7 @@ import ChatBox from "components/ChatBox";
 
 function MainPage() {
   return (
-    <div>
+    <div style={{ padding: '20px' }}>
       <ChatBox />
     </div>
   );
