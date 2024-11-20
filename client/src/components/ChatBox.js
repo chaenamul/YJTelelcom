@@ -10,7 +10,7 @@ const ChatBox = () => {
   // Listen for incoming messages
   useEffect(() => {
     // Event listener for receiving messages
-    socket.on(Event.RECEIVE_MESSAGE, (newMessage) => {
+    socket.on("receive_message", (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
       setTimeout(() => {
     	  bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -19,20 +19,20 @@ const ChatBox = () => {
 
     // Clean up listeners on unmount
     return () => {
-      socket.off(Event.RECEIVE_MESSAGE);
+      socket.off("receive_message");
     };
   }, [messages]);
   
   // Listen for username update
   useEffect(() => {
     // Listen for initial username from server
-    socket.on(Event.SET_USERNAME, (data) => {
+    socket.on("set_username", (data) => {
       setUsername(data.username);  // Set the initial username
     });
 
     // Clean up listeners on unmount
     return () => {
-      socket.off(Event.SET_USERNAME);
+      socket.off("set_username");
     };
   }, [username]);
 
@@ -60,13 +60,13 @@ const ChatBox = () => {
 
   // Emit the change_username event to the server
   const handleUsernameBlur = () => {
-    socket.emit(Event.CHANGE_USERNAME, username);  // Emit username change to server
+    socket.emit("change_username", username);  // Emit username change to server
   };
 
   // Send the message to the server
   const handleSendMessage = () => {
     if (message.trim()) {
-      socket.emit(Event.SEND_MESSAGE, message);  // Send message to server
+      socket.emit("send_message", message);  // Send message to server
       setMessage("");  // Clear input after sending
     }
   };
