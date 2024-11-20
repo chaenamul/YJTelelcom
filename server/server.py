@@ -21,6 +21,16 @@ app.add_middleware(
 
 # Object to store user information, mapping sid to username
 user_list = {}
+ip_username_map = {
+}
+# TODO:
+# use this for settings
+ip_settings = {
+    "room1": {
+        "least": "0.0.0.0",
+        "greatest": "255.255.255.255"
+    }
+}
 
 # Function to generate a random username
 
@@ -47,6 +57,9 @@ def assign_room(ip_address: str) -> str:
 
 # Socket.IO connection event
 
+def new_assign_room():
+    # implement here
+    return "room1"
 
 @sio.event
 async def connect(sid, environ):
