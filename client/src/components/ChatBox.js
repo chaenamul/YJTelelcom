@@ -72,15 +72,22 @@ const ChatBox = () => {
   };
 
   return (
-    <div>
+    <div
+      style={{
+        width: '80%',
+        height: '100vh',
+        float: 'left',
+        boxSizing: 'border-box',
+      }}
+    >
       <h2>Chat Room</h2>
       <div
         style={{
           border: "1px solid #ccc",
           padding: "10px",
           marginBottom: "10px",
-          height: "60vh",
-          height: "60dvh",
+          height: "80%",
+          //height: "60dvh",
           overflowY: "scroll"
         }}
       >
