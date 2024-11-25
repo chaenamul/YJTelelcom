@@ -23,7 +23,16 @@ app.add_middleware(
 user_list = {}
 ip_username_map = {
 }
-# TODO:
+
+
+# 각 방에 있는 user들을 저장하는 set
+
+room_users = {
+    "room1": set(),
+    "room2": set()
+}
+
+
 # use this for settings
 ip_settings = {
     "room1": {
@@ -69,8 +78,13 @@ async def connect(sid, environ):
     print('connected from: ' + ip_address + ' to ' + room)
     user_list[sid] = username  # Store the username with sid
 
+    room_users[room].add(sid)  # 방에 들어온 user를 추가
+
     # Make sure the user joins the room
     await sio.enter_room(sid, room)
+
+    # 사용자들에게 업데이트 된 사용자 목록 전송
+    await update_user_list(room)
 
     # Send the username to client (initial nickname)
     await sio.emit('set_username', {'username': username}, room=sid)
@@ -82,6 +96,17 @@ async def connect(sid, environ):
 async def change_username(sid, new_username):
     if sid in user_list:
         user_list[sid] = new_username  # Update the username in the user_list
+
+        room = None
+        for r in sio.rooms(sid):
+            if r != sid:  # sid 자체는 제외
+                room = r
+                break
+        
+        if room:
+            await update_user_list(room)  # 업데이트된 사용자 목록 전송
+
+
         await sio.emit('username_changed', {'username': new_username}, room=sid)
 
 # Handle incoming messages
@@ -102,6 +127,15 @@ async def send_message(sid, message):
             # Broadcast the message to everyone in the room (except sender)
             await sio.emit('receive_message', {'text': message, 'sender': username}, room=room, skip_sid=sid)
             await sio.emit('receive_message', {'text': message, 'sender': 'You'}, room=sid)
+
+# 특정 room에 있는 username을 알려줍니다.
+
+@sio.event
+async def update_user_list(room):
+    usernames = [user_list[sid] for sid in room_users[room] if sid in user_list]
+    print(room_users)
+    await sio.emit('update_user_list', {'users': usernames}, room=room)
+
 
 # Start ASGI app
 if __name__ == "__main__":
