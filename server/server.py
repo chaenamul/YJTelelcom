@@ -130,6 +130,29 @@ async def send_message(sid, message):
 
 # 특정 room에 있는 username을 알려줍니다.
 
+# 연결이 끊어진 경우 실헹
+@sio.event
+async def disconnect(sid):
+    # 사용자의 room 정보 확인
+    room = None
+    for r in sio.rooms(sid):
+        if r != sid: 
+            room = r
+            break
+
+    if room:
+        
+        room_users[room].discard(sid)
+
+        await update_user_list(room)
+
+# user_list에서도 삭제 필요시 사용하세요
+#    if sid in user_list:
+#        del user_list[sid]
+
+    print(f"Disconnected: {sid}, removed from room: {room}")
+
+
 @sio.event
 async def update_user_list(room):
     usernames = [user_list[sid] for sid in room_users[room] if sid in user_list]
