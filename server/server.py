@@ -58,18 +58,6 @@ def generate_username():
 
 
 def assign_room(ip_address: str) -> str:
-    # Extract the 4th octet of the IP address and assign the room accordingly
-    # try:
-    #     ip_parts = ip_address.split(".")
-    #     fourth_octet = int(ip_parts[3])
-    #     if 0 <= fourth_octet <= 127:
-    #         return "room1"
-    #     elif 128 <= fourth_octet <= 255:
-    #         return "room2"
-    #     else:
-    #         return "room1"  # Default to room1 if something goes wrong
-    # except Exception as e:
-    #     return "room1"  # Default to room1 in case of any error
     try:
         # 방 정보 가져오기
         rooms = settings.get("rooms", {})
@@ -83,6 +71,9 @@ def assign_room(ip_address: str) -> str:
             current_ip = ipaddress.ip_address(ip_address)  # 현재 IP
 
             if least_ip <= current_ip <= greatest_ip:
+                if room_name not in room_users:
+                    room_users[room_name] = set()
+                    print("room_users: ", room_users)
                 return room_name  # 범위에 맞는 방 이름 반환
 
         return "room0"  # 범위에 맞는 방이 없을 경우 기본 방 반환
@@ -91,11 +82,6 @@ def assign_room(ip_address: str) -> str:
         return "room0"  # 에러 시 기본 방 반환
 
 # Socket.IO connection event
-
-def new_assign_room():
-    # implement here
-    return "room1"
-
 @sio.event
 async def connect(sid, environ):
     ip_address = environ.get("REMOTE_ADDR")  # Extract client's IP address
