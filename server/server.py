@@ -1,6 +1,7 @@
 import random
 import string
 import socketio
+import ipaddress
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -61,26 +62,19 @@ def assign_room(ip_address: str) -> str:
     # except Exception as e:
     #     return "room1"  # Default to room1 in case of any error
     try:
-        ip_parts = ip_address.split(".")
-        fourth_octet = int(ip_parts[3])  # 마지막 옥텟 추출
-
         # 방 정보 가져오기
-        rooms = settings.get("rooms", [])  # [{id: 1, capacity: 2}, {id: 2, capacity: 3}, ...]
+        rooms = settings.get("rooms", {})
         if not rooms:
             return "default-room"  # 방 정보가 없으면 기본 방 반환
 
-        # 각 방의 시작 범위 계산
-        room_ranges = []
-        start = 0
-        for room in rooms:
-            end = start + room["capacity"] - 1
-            room_ranges.append((room["id"], start, end))
-            start = end + 1
+        # IP 범위 확인
+        for room_name, room_data in rooms.items():
+            least_ip = ipaddress.ip_address(room_data["least"])  # 최소 IP
+            greatest_ip = ipaddress.ip_address(room_data["greatest"])  # 최대 IP
+            current_ip = ipaddress.ip_address(ip_address)  # 현재 IP
 
-        # 방 범위에 따라 방 배정
-        for room_id, start, end in room_ranges:
-            if start <= fourth_octet <= end:
-                return f"room{room_id}"
+            if least_ip <= current_ip <= greatest_ip:
+                return room_name  # 범위에 맞는 방 이름 반환
 
         return "default-room"  # 범위에 맞는 방이 없을 경우 기본 방 반환
     except Exception as e:
