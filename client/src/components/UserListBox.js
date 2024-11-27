@@ -2,12 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { socket } from 'socket/socket';
 
 const UserListBox = () => {
-  // Implement Here
-  const [username, setUsername] = useState("");
+  //const [username, setUsername] = useState("");
   const [userList, setUserList] = useState([]);
+
+  useEffect(() => {
+    socket.on("update_user_list", (data) => {
+      if (data.users) {
+        setUserList(data.users);
+      }
+    });
+
+    // Emit a request to join the room and get the current user list
+    socket.emit("get_user_list", { room: "your_room_name" });
+
+    return () => {
+      socket.off("update_user_list");
+    };
+  }, []);
   
   return (
-    // and Here
     <div>
       <h2>User List</h2>
       <div
