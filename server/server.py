@@ -22,6 +22,15 @@ app.add_middleware(
 
 # Object to store user information, mapping sid to username
 user_list = {}
+
+# 각 방에 있는 user들을 저장하는 set
+
+room_users = {
+    "room0": set(),
+    "room1": set(),
+    "room2": set(),
+}
+
 ip_username_map = {
 }
 # TODO:
@@ -65,7 +74,7 @@ def assign_room(ip_address: str) -> str:
         # 방 정보 가져오기
         rooms = settings.get("rooms", {})
         if not rooms:
-            return "default-room"  # 방 정보가 없으면 기본 방 반환
+            return "room0"  # 방 정보가 없으면 기본 방 반환
 
         # IP 범위 확인
         for room_name, room_data in rooms.items():
@@ -76,10 +85,10 @@ def assign_room(ip_address: str) -> str:
             if least_ip <= current_ip <= greatest_ip:
                 return room_name  # 범위에 맞는 방 이름 반환
 
-        return "default-room"  # 범위에 맞는 방이 없을 경우 기본 방 반환
+        return "room0"  # 범위에 맞는 방이 없을 경우 기본 방 반환
     except Exception as e:
         print(f"Error in assign_room: {str(e)}")
-        return "default-room"  # 에러 시 기본 방 반환
+        return "room0"  # 에러 시 기본 방 반환
 
 # Socket.IO connection event
 
@@ -95,8 +104,13 @@ async def connect(sid, environ):
     print('connected from: ' + ip_address + ' to ' + room)
     user_list[sid] = username  # Store the username with sid
 
+    room_users[room].add(sid)  # 방에 들어온 user를 추가
+
     # Make sure the user joins the room
     await sio.enter_room(sid, room)
+
+    # 사용자들에게 업데이트 된 사용자 목록 전송
+    await update_user_list(room)
 
     # Send the username to client (initial nickname)
     await sio.emit('set_username', {'username': username}, room=sid)
@@ -110,8 +124,46 @@ async def change_username(sid, new_username):
         user_list[sid] = new_username  # Update the username in the user_list
         await sio.emit('username_changed', {'username': new_username}, room=sid)
 
+        room = None
+        for r in sio.rooms(sid):
+            if r != sid:  # sid 자체는 제외
+                room = r
+                break
+
+        if room:
+            await update_user_list(room)  # 업데이트된 사용자 목록 전송
 # Handle incoming messages
 
+# 특정 room에 있는 username을 알려줍니다.
+
+# 연결이 끊어진 경우 실헹
+@sio.event
+async def disconnect(sid):
+    # 사용자의 room 정보 확인
+    room = None
+    for r in sio.rooms(sid):
+        if r != sid: 
+            room = r
+            break
+
+    if room:
+
+        room_users[room].discard(sid)
+
+        await update_user_list(room)
+
+# user_list에서도 삭제 필요시 사용하세요
+#    if sid in user_list:
+#        del user_list[sid]
+
+    print(f"Disconnected: {sid}, removed from room: {room}")
+
+
+@sio.event
+async def update_user_list(room):
+    usernames = [user_list[sid] for sid in room_users[room] if sid in user_list]
+    print(room_users)
+    await sio.emit('update_user_list', {'users': usernames}, room=room)
 
 @sio.event
 async def send_message(sid, message):
