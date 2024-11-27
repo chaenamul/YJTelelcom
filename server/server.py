@@ -25,10 +25,16 @@ ip_username_map = {
 }
 # TODO:
 # use this for settings
-ip_settings = {
-    "room1": {
-        "least": "0.0.0.0",
-        "greatest": "255.255.255.255"
+settings = {
+    "rooms": {
+        "room1": {
+            "least": "192.168.0.0",
+            "greatest": "192.168.0.100"
+        },
+        "room2": {
+            "least": "192.168.0.101",
+            "greatest": "192.168.0.255"
+        }
     }
 }
 
@@ -59,7 +65,7 @@ def assign_room(ip_address: str) -> str:
         fourth_octet = int(ip_parts[3])  # 마지막 옥텟 추출
 
         # 방 정보 가져오기
-        rooms = ip_settings.get("rooms", [])  # [{id: 1, capacity: 2}, {id: 2, capacity: 3}, ...]
+        rooms = settings.get("rooms", [])  # [{id: 1, capacity: 2}, {id: 2, capacity: 3}, ...]
         if not rooms:
             return "default-room"  # 방 정보가 없으면 기본 방 반환
 
@@ -131,15 +137,21 @@ async def send_message(sid, message):
 
 # Handle room data update from client
 @sio.event
-async def update_room_data(sid, rooms):
+async def update_room_settings(sid, rooms: dict):
     try:
         # Update room settings with provided data
-        ip_settings["rooms"] = rooms  # Assume rooms is a list of dictionaries: [{"id": 1, "capacity": 2}, ...]
+        settings["rooms"] = rooms  # Assume rooms is a list of dictionaries: [{"id": 1, "capacity": 2}, ...]
         print(f"Room data updated by {sid}: {rooms}")
         await sio.emit("room_data_updated", {"status": "success", "rooms": rooms}, room=sid)
     except Exception as e:
         print(f"Error updating room data: {str(e)}")
         await sio.emit("room_data_updated", {"status": "error", "message": str(e)}, room=sid)
+
+@sio.event
+async def get_settings(sid):
+    print(f"Settings data sent by {sid}")
+    await sio.emit("receive_settings", {"status": "success", "settings": settings}, room=sid)
+    
 
 # Start ASGI app
 if __name__ == "__main__":
