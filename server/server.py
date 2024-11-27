@@ -58,13 +58,28 @@ def assign_room(ip_address: str) -> str:
         ip_parts = ip_address.split(".")
         fourth_octet = int(ip_parts[3])  # 마지막 옥텟 추출
 
-        # Calculate room based on the number of rooms
-        total_rooms = ip_settings.get("total_rooms", 1)  # Default to 1 room
-        room_number = (fourth_octet % total_rooms) + 1  # 방 번호 계산 (1부터 시작)
-        
-        return f"room{room_number}"
+        # 방 정보 가져오기
+        rooms = ip_settings.get("rooms", [])  # [{id: 1, capacity: 2}, {id: 2, capacity: 3}, ...]
+        if not rooms:
+            return "default-room"  # 방 정보가 없으면 기본 방 반환
+
+        # 각 방의 시작 범위 계산
+        room_ranges = []
+        start = 0
+        for room in rooms:
+            end = start + room["capacity"] - 1
+            room_ranges.append((room["id"], start, end))
+            start = end + 1
+
+        # 방 범위에 따라 방 배정
+        for room_id, start, end in room_ranges:
+            if start <= fourth_octet <= end:
+                return f"room{room_id}"
+
+        return "default-room"  # 범위에 맞는 방이 없을 경우 기본 방 반환
     except Exception as e:
-        return "default-room"  # 에러 시 기본 방
+        print(f"Error in assign_room: {str(e)}")
+        return "default-room"  # 에러 시 기본 방 반환
 
 # Socket.IO connection event
 
@@ -114,16 +129,17 @@ async def send_message(sid, message):
             await sio.emit('receive_message', {'text': message, 'sender': username}, room=room, skip_sid=sid)
             await sio.emit('receive_message', {'text': message, 'sender': 'You'}, room=sid)
 
-# Handle room count update from client
+# Handle room data update from client
 @sio.event
-async def update_room_count(sid, room_count):
+async def update_room_data(sid, rooms):
     try:
-        global ip_settings
-        ip_settings["total_rooms"] = room_count  # Update the total room count
-        print(f"Room count updated to {room_count} by {sid}")
-        await sio.emit("room_count_updated", {"status": "success", "total_rooms": room_count}, room=sid)
+        # Update room settings with provided data
+        ip_settings["rooms"] = rooms  # Assume rooms is a list of dictionaries: [{"id": 1, "capacity": 2}, ...]
+        print(f"Room data updated by {sid}: {rooms}")
+        await sio.emit("room_data_updated", {"status": "success", "rooms": rooms}, room=sid)
     except Exception as e:
-        await sio.emit("room_count_updated", {"status": "error", "message": str(e)}, room=sid)
+        print(f"Error updating room data: {str(e)}")
+        await sio.emit("room_data_updated", {"status": "error", "message": str(e)}, room=sid)
 
 # Start ASGI app
 if __name__ == "__main__":

@@ -1,47 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { socket } from "socket/socket";
 
 const DummySettings = () => {
-    const [roomCount, setRoomCount] = useState(2); // 초기 방 개수 설정
+    const [rooms, setRooms] = useState([
+        { id: 1, capacity: 2 },
+        { id: 2, capacity: 2 },
+    ]); // 초기 방 데이터
 
-    const updateServerRoomCount = (newRoomCount) => {
-        // 서버로 방 개수 전달
-        socket.emit('update_room_count', newRoomCount, (response) => {
+    const updateServerRoomData = (newRooms) => {
+        // 서버로 방 데이터 전달
+        socket.emit('update_room_data', newRooms, (response) => {
             if (response.status === "success") {
-                console.log(`Room count updated successfully to ${newRoomCount}`);
+                console.log(`Room data updated successfully:`, newRooms);
             } else {
-                console.error(`Failed to update room count: ${response.message}`);
+                console.error(`Failed to update room data: ${response.message}`);
             }
         });
     };
 
-    useEffect(() => {
-        // roomCount가 변경될 때 서버로 설정값 전달
-        updateServerRoomCount(roomCount);
-    }, [roomCount]); // roomCount 변경 시 실행
-
-    const handleInputChange = (event) => {
+    const handleInputChange = (roomId, event) => {
         const input = event.target.value;
         const parsedValue = parseInt(input, 10);
 
         if (!isNaN(parsedValue) && parsedValue > 0) {
-            setRoomCount(parsedValue);
+            const updatedRooms = rooms.map((room) =>
+                room.id === roomId ? { ...room, capacity: parsedValue } : room
+            );
+            setRooms(updatedRooms);
+            updateServerRoomData(updatedRooms); // 변경된 데이터를 서버로 전달
         } else {
-            console.log('Invalid room count input. Must be a positive number.');
+            console.log('Invalid capacity input. Must be a positive number.');
         }
+    };
+
+    const addRoom = () => {
+        const newRoom = { id: rooms.length + 1, capacity: 2 }; // 새 방 기본 정원 2
+        const updatedRooms = [...rooms, newRoom];
+        setRooms(updatedRooms);
+        updateServerRoomData(updatedRooms);
     };
 
     return (
         <div>
-            <h3>Current Room Count: {roomCount}</h3>
-            <label htmlFor="roomCountInput">Enter Room Count:</label>
-            <input
-                type="text"
-                id="roomCountInput"
-                value={roomCount}
-                onChange={handleInputChange}
-                placeholder="Enter room count (e.g., 3)"
-            />
+            <h3>Room Settings</h3>
+            {rooms.map((room) => (
+                <div key={room.id}>
+                    <label htmlFor={`room-${room.id}`}>
+                        Room {room.id} Capacity:
+                    </label>
+                    <input
+                        type="text"
+                        id={`room-${room.id}`}
+                        value={room.capacity}
+                        onChange={(event) => handleInputChange(room.id, event)}
+                        placeholder={`Enter capacity for room ${room.id}`}
+                    />
+                </div>
+            ))}
+            <button onClick={addRoom}>Add Room</button>
         </div>
     );
 };
