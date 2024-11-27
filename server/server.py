@@ -137,15 +137,18 @@ async def send_message(sid, message):
 
 # Handle room data update from client
 @sio.event
-async def update_room_settings(sid, rooms: dict):
+async def update_settings(sid, rooms: dict):
     try:
-        # Update room settings with provided data
-        settings["rooms"] = rooms  # Assume rooms is a list of dictionaries: [{"id": 1, "capacity": 2}, ...]
-        print(f"Room data updated by {sid}: {rooms}")
-        await sio.emit("room_data_updated", {"status": "success", "rooms": rooms}, room=sid)
+        if not isinstance(rooms, dict):
+            raise ValueError("Invalid data format. Expected a dictionary.")
+
+        settings["rooms"] = rooms
+        print(f"Room settings updated by {sid}: {rooms}")
+        return {"status": "success", "rooms": rooms}
     except Exception as e:
-        print(f"Error updating room data: {str(e)}")
-        await sio.emit("room_data_updated", {"status": "error", "message": str(e)}, room=sid)
+        print(f"Error updating room settings: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
 
 @sio.event
 async def get_settings(sid):

@@ -27,15 +27,39 @@ const DummySettings = () => {
     }, []);
 
     const updateServerSettings = () => {
-        // Send the current settings data to the server
-        socket.emit("update_settings", settings, (response) => {
-            if (response.status === "success") {
-                console.log("Settings updated successfully:", settings);
+        const { rooms } = settings;
+        socket.emit("update_settings", rooms, (response) => {
+            if (response?.status === "success") {
+                console.log("Settings updated successfully:", rooms);
             } else {
-                console.error("Failed to update settings:", response.message);
+                console.error(
+                    "Failed to update settings:",
+                    response?.message || "No response from server"
+                );
             }
         });
     };
+    
+    const addRoom = () => {
+        const roomKeys = Object.keys(settings.rooms);
+        const lastRoomKey = roomKeys[roomKeys.length - 1];
+        const lastGreatestIP = settings.rooms[lastRoomKey].greatest;
+        const [base, fourthOctet] = lastGreatestIP.split(".");
+    
+        const newLeastIP = `${base}.${parseInt(fourthOctet, 10) + 1}`;
+        const newGreatestIP = `${base}.${parseInt(fourthOctet, 10) + 100}`;
+    
+        const newRoomKey = `room${roomKeys.length + 1}`;
+        setSettings((prevSettings) => ({
+            ...prevSettings,
+            rooms: {
+                ...prevSettings.rooms,
+                [newRoomKey]: { least: newLeastIP, greatest: newGreatestIP },
+            },
+        }));
+    };
+    
+    
 
     const handleInputChange = (roomKey, field, event) => {
         const input = event.target.value;
@@ -53,16 +77,7 @@ const DummySettings = () => {
         }));
     };
 
-    const addRoom = () => {
-        const newRoomKey = `room${Object.keys(settings.rooms).length + 1}`;
-        setSettings((prevSettings) => ({
-            ...prevSettings,
-            rooms: {
-                ...prevSettings.rooms,
-                [newRoomKey]: { least: "192.168.0.0", greatest: "192.168.0.0" }, // Default values
-            },
-        }));
-    };
+    
 
     return (
         <div>
