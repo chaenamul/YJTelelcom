@@ -7,13 +7,13 @@ const DummySettings = () => {
             room1: { least: "192.168.0.0", greatest: "192.168.0.100" },
             room2: { least: "192.168.0.101", greatest: "192.168.0.255" },
         },
-    }); // 초기 설정값
+    }); // Initial settings
 
     useEffect(() => {
         // Event listener for receiving settings
         socket.on("receive_settings", (data) => {
             if (data.status === "success") {
-                setSettings(data.settings); // Settings 데이터 상태에 저장
+                setSettings(data.settings); // Save settings data to state
                 console.log("Settings received:", data.settings);
             } else {
                 console.error("Failed to receive settings:", data.message);
@@ -24,13 +24,13 @@ const DummySettings = () => {
         return () => {
             socket.off("receive_settings");
         };
-    }, [settings]);
+    }, []);
 
-    const updateServerSettings = (updatedSettings) => {
-        // 서버로 settings 데이터 전달
-        socket.emit("update_settings", updatedSettings, (response) => {
+    const updateServerSettings = () => {
+        // Send the current settings data to the server
+        socket.emit("update_settings", settings, (response) => {
             if (response.status === "success") {
-                console.log("Settings updated successfully:", updatedSettings);
+                console.log("Settings updated successfully:", settings);
             } else {
                 console.error("Failed to update settings:", response.message);
             }
@@ -40,34 +40,28 @@ const DummySettings = () => {
     const handleInputChange = (roomKey, field, event) => {
         const input = event.target.value;
 
-        // 입력값에 따라 settings 업데이트
-        const updatedSettings = {
-            ...settings,
+        // Update settings based on input
+        setSettings((prevSettings) => ({
+            ...prevSettings,
             rooms: {
-                ...settings.rooms,
+                ...prevSettings.rooms,
                 [roomKey]: {
-                    ...settings.rooms[roomKey],
+                    ...prevSettings.rooms[roomKey],
                     [field]: input,
                 },
             },
-        };
-
-        setSettings(updatedSettings);
-        updateServerSettings(updatedSettings); // 변경된 데이터를 서버로 전달
+        }));
     };
 
     const addRoom = () => {
         const newRoomKey = `room${Object.keys(settings.rooms).length + 1}`;
-        const updatedSettings = {
-            ...settings,
+        setSettings((prevSettings) => ({
+            ...prevSettings,
             rooms: {
-                ...settings.rooms,
-                [newRoomKey]: { least: "192.168.0.0", greatest: "192.168.0.0" }, // 기본값
+                ...prevSettings.rooms,
+                [newRoomKey]: { least: "192.168.0.0", greatest: "192.168.0.0" }, // Default values
             },
-        };
-
-        setSettings(updatedSettings);
-        updateServerSettings(updatedSettings);
+        }));
     };
 
     return (
@@ -99,6 +93,7 @@ const DummySettings = () => {
                 </div>
             ))}
             <button onClick={addRoom}>Add Room</button>
+            <button onClick={updateServerSettings}>Change</button>
         </div>
     );
 };
