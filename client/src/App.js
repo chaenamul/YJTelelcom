@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import Router from "routes/Router";
 import { socket } from "socket/socket";
 import Header from 'components/Header';
+import DummySettings from 'components/DummySettings';
 
 function App() {
   const [isConnected, setIsConnected] = useState(socket.connected);
@@ -36,6 +37,7 @@ function App() {
     <div>
       <BrowserRouter>
         <Header isConnected={isConnected} />
+        <DummySettings></DummySettings>
         <Router />
       </BrowserRouter>
     </div>

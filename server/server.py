@@ -1,6 +1,7 @@
 import random
 import string
 import socketio
+import ipaddress
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -25,10 +26,16 @@ ip_username_map = {
 }
 # TODO:
 # use this for settings
-ip_settings = {
-    "room1": {
-        "least": "0.0.0.0",
-        "greatest": "255.255.255.255"
+settings = {
+    "rooms": {
+        "room1": {
+            "least": "192.168.0.0",
+            "greatest": "192.168.0.100"
+        },
+        "room2": {
+            "least": "192.168.0.101",
+            "greatest": "192.168.0.255"
+        }
     }
 }
 
@@ -43,17 +50,36 @@ def generate_username():
 
 def assign_room(ip_address: str) -> str:
     # Extract the 4th octet of the IP address and assign the room accordingly
+    # try:
+    #     ip_parts = ip_address.split(".")
+    #     fourth_octet = int(ip_parts[3])
+    #     if 0 <= fourth_octet <= 127:
+    #         return "room1"
+    #     elif 128 <= fourth_octet <= 255:
+    #         return "room2"
+    #     else:
+    #         return "room1"  # Default to room1 if something goes wrong
+    # except Exception as e:
+    #     return "room1"  # Default to room1 in case of any error
     try:
-        ip_parts = ip_address.split(".")
-        fourth_octet = int(ip_parts[3])
-        if 0 <= fourth_octet <= 127:
-            return "room1"
-        elif 128 <= fourth_octet <= 255:
-            return "room2"
-        else:
-            return "room1"  # Default to room1 if something goes wrong
+        # 방 정보 가져오기
+        rooms = settings.get("rooms", {})
+        if not rooms:
+            return "default-room"  # 방 정보가 없으면 기본 방 반환
+
+        # IP 범위 확인
+        for room_name, room_data in rooms.items():
+            least_ip = ipaddress.ip_address(room_data["least"])  # 최소 IP
+            greatest_ip = ipaddress.ip_address(room_data["greatest"])  # 최대 IP
+            current_ip = ipaddress.ip_address(ip_address)  # 현재 IP
+
+            if least_ip <= current_ip <= greatest_ip:
+                return room_name  # 범위에 맞는 방 이름 반환
+
+        return "default-room"  # 범위에 맞는 방이 없을 경우 기본 방 반환
     except Exception as e:
-        return "room1"  # Default to room1 in case of any error
+        print(f"Error in assign_room: {str(e)}")
+        return "default-room"  # 에러 시 기본 방 반환
 
 # Socket.IO connection event
 
@@ -102,6 +128,27 @@ async def send_message(sid, message):
             # Broadcast the message to everyone in the room (except sender)
             await sio.emit('receive_message', {'text': message, 'sender': username}, room=room, skip_sid=sid)
             await sio.emit('receive_message', {'text': message, 'sender': 'You'}, room=sid)
+
+# Handle room data update from client
+@sio.event
+async def update_settings(sid, rooms: dict):
+    try:
+        if not isinstance(rooms, dict):
+            raise ValueError("Invalid data format. Expected a dictionary.")
+
+        settings["rooms"] = rooms
+        print(f"Room settings updated by {sid}: {rooms}")
+        return {"status": "success", "rooms": rooms}
+    except Exception as e:
+        print(f"Error updating room settings: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+@sio.event
+async def get_settings(sid):
+    print(f"Settings data sent by {sid}")
+    await sio.emit("receive_settings", {"status": "success", "settings": settings}, room=sid)
+    
 
 # Start ASGI app
 if __name__ == "__main__":
