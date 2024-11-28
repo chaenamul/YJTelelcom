@@ -24,16 +24,12 @@ app.add_middleware(
 user_list = {}
 
 # 각 방에 있는 user들을 저장하는 set
-
 room_users = {
     "room0": set(),
     "room1": set(),
     "room2": set(),
 }
 
-ip_username_map = {
-}
-# TODO:
 # use this for settings
 settings = {
     "rooms": {
@@ -71,9 +67,10 @@ def assign_room(ip_address: str) -> str:
             current_ip = ipaddress.ip_address(ip_address)  # 현재 IP
 
             if least_ip <= current_ip <= greatest_ip:
-                if room_name not in room_users:
-                    room_users[room_name] = set()
-                    print("room_users: ", room_users)
+                # 일단 비활성화. 유사시 복구
+                # if room_name not in room_users:
+                #     room_users[room_name] = set()
+                #     print("room_users: ", room_users)
                 return room_name  # 범위에 맞는 방 이름 반환
 
         return "room0"  # 범위에 맞는 방이 없을 경우 기본 방 반환
@@ -86,14 +83,15 @@ def assign_room(ip_address: str) -> str:
 async def connect(sid, environ):
     ip_address = environ.get("REMOTE_ADDR")  # Extract client's IP address
     username = generate_username()  # Generate a random username
+    # initialize sid session
+    await sio.save_session(sid, {"username": username, "ip_address": ip_address})
+
+    user_list[sid] = username  # Store the username with sid
     room = assign_room(ip_address)  # Determine room based on IP
     print('connected from: ' + ip_address + ' to ' + room)
-    user_list[sid] = username  # Store the username with sid
-
-    room_users[room].add(sid)  # 방에 들어온 user를 추가
 
     # Make sure the user joins the room
-    await sio.enter_room(sid, room)
+    await change_room(sid, room)
 
     # 사용자들에게 업데이트 된 사용자 목록 전송
     await update_user_list(room)
@@ -106,16 +104,12 @@ async def connect(sid, environ):
 
 @sio.event
 async def change_username(sid, new_username):
+    session = await sio.get_session(sid)
+    session.update({"username": new_username})
+    sio.save_session(sid, session)
     if sid in user_list:
         user_list[sid] = new_username  # Update the username in the user_list
-        await sio.emit('username_changed', {'username': new_username}, room=sid)
-
-        room = None
-        for r in sio.rooms(sid):
-            if r != sid:  # sid 자체는 제외
-                room = r
-                break
-
+        room = session.get("room")
         if room:
             await update_user_list(room)  # 업데이트된 사용자 목록 전송
 # Handle incoming messages
@@ -126,21 +120,21 @@ async def change_username(sid, new_username):
 @sio.event
 async def disconnect(sid):
     # 사용자의 room 정보 확인
-    room = None
-    for r in sio.rooms(sid):
-        if r != sid: 
-            room = r
-            break
+    session = await sio.get_session(sid)
+    room = session.get("room")
+
+    # room = None
+    # for r in sio.rooms(sid):
+    #     if r != sid: 
+    #         room = r
+    #         break
 
     if room:
-
         room_users[room].discard(sid)
-
         await update_user_list(room)
 
-# user_list에서도 삭제 필요시 사용하세요
-#    if sid in user_list:
-#        del user_list[sid]
+    if sid in user_list:
+        del user_list[sid]
 
     print(f"Disconnected: {sid}, removed from room: {room}")
 
@@ -175,18 +169,42 @@ async def update_settings(sid, rooms: dict):
             raise ValueError("Invalid data format. Expected a dictionary.")
 
         settings["rooms"] = rooms
+        room_users.clear()
+        room_users["room0"] = set()
+        for room_name in rooms:
+            room_users[room_name] = set()
+        reassign_users() # TODO
         print(f"Room settings updated by {sid}: {rooms}")
         return {"status": "success", "rooms": rooms}
     except Exception as e:
         print(f"Error updating room settings: {str(e)}")
         return {"status": "error", "message": str(e)}
-
+    
 
 @sio.event
 async def get_settings(sid):
     print(f"Settings data sent by {sid}")
     await sio.emit("receive_settings", {"status": "success", "settings": settings}, room=sid)
     
+
+async def change_room(sid, new_room):
+    session = await sio.get_session(sid)
+    prev_room = session.get("room")
+
+    if prev_room:
+        await sio.leave_room(sid, prev_room)
+        room_users[prev_room].discard(sid)
+
+    await sio.enter_room(sid, new_room)
+    room_users[new_room].add(sid)
+
+    session.update({"room": new_room})
+    await sio.save_session(sid, session)
+
+
+async def reassign_users():
+    # TODO
+    pass
 
 # Start ASGI app
 if __name__ == "__main__":

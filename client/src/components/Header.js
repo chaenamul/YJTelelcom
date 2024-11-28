@@ -25,6 +25,9 @@ function Header({ isConnected }) {
         <div onClick={() => navigate('/main')} style={{ margin: '0px', cursor: 'pointer' }}>
           Main
         </div>
+        <div onClick={() => navigate('/settings')} style={{ margin: '0px', cursor: 'pointer' }}>
+          Settings
+        </div>
       </div>
       <div style={{ display: 'flex', gap: '10px' }}>
         <button
