@@ -12,10 +12,15 @@ const UserListBox = () => {
       }
     });
 
+    socket.on("disconnect", () => {
+      setUserList([]); // Clear the user list when disconnected
+    });
+
     // Emit a request to join the room and get the current user list
     socket.emit("get_user_list", { room: "your_room_name" });
 
     return () => {
+      socket.off("disconnect");
       socket.off("update_user_list");
     };
   }, []);
