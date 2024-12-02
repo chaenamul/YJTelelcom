@@ -173,7 +173,8 @@ async def update_settings(sid, rooms: dict):
         room_users["room0"] = set()
         for room_name in rooms:
             room_users[room_name] = set()
-        reassign_users() # TODO
+        # 사용자 재할당을 진행합니다.
+        await reassign_users()
         print(f"Room settings updated by {sid}: {rooms}")
         return {"status": "success", "rooms": rooms}
     except Exception as e:
@@ -203,8 +204,22 @@ async def change_room(sid, new_room):
 
 
 async def reassign_users():
-    # TODO
-    pass
+    for sid in user_list:
+        session = await sio.get_session(sid)
+        #사용지의 ip 주소를 확인합니다.
+        ip_address = session.get('ip_address')
+        if ip_address:
+            # assign room을 활용하여 새로운 방을 할당합니다
+            new_room = assign_room(ip_address)
+            await change_room(sid, new_room)
+        else:
+            print(f"No IP address found for sid {sid}")
+
+    # 업데이트된 room_user 정보를 전송합니다. -> 프론트 로직에 따라
+    # 변경이 필요할 수 있을 것 같습니다.
+
+    for room in room_users:
+        await update_user_list(room)
 
 # Start ASGI app
 if __name__ == "__main__":
