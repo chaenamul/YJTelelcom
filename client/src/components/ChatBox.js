@@ -1,127 +1,81 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { socket, Event } from 'socket/socket';
+import { socket } from 'socket/socket';
+import { Box, Typography, TextField, Button, Paper } from '@mui/material';
 
 const ChatBox = () => {
   const [messages, setMessages] = useState([]);
-  const [message, setMessage] = useState("");
-  const [username, setUsername] = useState("");  // Username state
+  const [message, setMessage] = useState('');
   const bottomRef = useRef(null);
 
-  // Listen for incoming messages
   useEffect(() => {
-    // Event listener for receiving messages
-    socket.on("receive_message", (newMessage) => {
+    socket.on('receive_message', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
       setTimeout(() => {
-    	  bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 10);
     });
 
-    // Clean up listeners on unmount
     return () => {
-      socket.off("receive_message");
+      socket.off('receive_message');
     };
   }, [messages]);
-  
-  // Listen for username update
-  useEffect(() => {
-    // Listen for initial username from server
-    socket.on("set_username", (data) => {
-      setUsername(data.username);  // Set the initial username
-    });
 
-    // Clean up listeners on unmount
-    return () => {
-      socket.off("set_username");
-    };
-  }, [username]);
-
-  // Handle message change with Shift+Enter for new lines
-  const handleChange = (e) => {
-    setMessage(e.target.value);
-  };
-
-  // Handle Enter key press for sending messages
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      if (e.shiftKey) {
-        setMessage((prevMessage) => prevMessage + "\n");  // Shift+Enter inserts a newline
-      } else {
-        e.preventDefault();  // Prevent new line on Enter
-        handleSendMessage();
-      }
-    }
-  };
-
-  // Handle nickname change
-  const handleUsernameChange = (e) => {
-    setUsername(e.target.value);  // Update username in state
-  };
-
-  // Emit the change_username event to the server
-  const handleUsernameBlur = () => {
-    socket.emit("change_username", username);  // Emit username change to server
-  };
-
-  // Send the message to the server
   const handleSendMessage = () => {
     if (message.trim()) {
-      socket.emit("send_message", message);  // Send message to server
-      setMessage("");  // Clear input after sending
+      socket.emit('send_message', message);
+      setMessage('');
     }
   };
 
   return (
-    <div
-      style={{
-        width: '80%',
-        height: '100vh',
-        float: 'left',
-        boxSizing: 'border-box',
+    <Paper
+      elevation={3}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        padding: 2,
       }}
     >
-      <h2>Chat Room</h2>
-      <div
-        style={{
-          border: "1px solid #ccc",
-          padding: "10px",
-          marginBottom: "10px",
-          height: "80%",
-          //height: "60dvh",
-          overflowY: "scroll"
+      {/* Chat Header */}
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Chat Room
+      </Typography>
+
+      {/* Chat Messages */}
+      <Box
+        sx={{
+          flex: 1, // flexible
+          overflowY: 'auto',
+          border: '1px solid #ccc',
+          padding: 2,
+          mb: 2,
         }}
       >
         {messages.map((msg, index) => (
-          <div key={index}>
-            <strong>{msg.sender}:</strong> {msg.text}
-          </div>
+          <Typography key={index} variant="body1" sx={{ mb: 1 }}>
+            {msg.sender}: {msg.text}
+          </Typography>
         ))}
         <div ref={bottomRef} />
-      </div>
-      <div>
-        <label>Username:</label>
-        <input
-          type="text"
-          value={username}
-          onChange={handleUsernameChange}
-          onBlur={handleUsernameBlur}  // Trigger change when the input loses focus
+      </Box>
+
+      {/* Chat Input */}
+      <Box sx={{ display: 'flex', gap: 2 }}>
+        <TextField
+          fullWidth
+          label="Type your message..."
+          multiline
+          rows={2}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          sx={{ flex: 1 }}
         />
-      </div>
-      <textarea
-        value={message}
-        disabled={socket.disconnected}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        placeholder="Type your message..."
-        style={{
-          width: "50%",
-          height: "50px"
-        }}
-      />
-      <button onClick={handleSendMessage} disabled={!message.trim()}>
-        Send
-      </button>
-    </div>
+        <Button variant="contained" onClick={handleSendMessage}>
+          Send
+        </Button>
+      </Box>
+    </Paper>
   );
 };
 

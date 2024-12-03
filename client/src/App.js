@@ -5,6 +5,22 @@ import Router from "routes/Router";
 import { socket } from "socket/socket";
 import Header from 'components/Header';
 
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2', 
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+    background: {
+      default: '#f5f5f5',
+    },
+  },
+});
+
 function App() {
   const [isConnected, setIsConnected] = useState(socket.connected);
 
@@ -33,12 +49,13 @@ function App() {
   }, []);
 
   return (
-    <div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       <BrowserRouter>
         <Header isConnected={isConnected} />
         <Router />
       </BrowserRouter>
-    </div>
+    </ThemeProvider>
   );
 }
 

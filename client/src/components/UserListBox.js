@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { socket } from 'socket/socket';
+import { Box, Typography, List, ListItem, ListItemText, Paper } from '@mui/material';
 
 const UserListBox = () => {
-  //const [username, setUsername] = useState("");
   const [userList, setUserList] = useState([]);
 
   useEffect(() => {
@@ -24,30 +24,31 @@ const UserListBox = () => {
       socket.off("update_user_list");
     };
   }, []);
-  
+
   return (
-    <div>
-      <h2>User List</h2>
-      <div
-        style={{
-          width: '20%',
-          height: '40vh',
-          float: 'right',
-          border: "1px solid #ccc",
-          padding: "10px",
-          boxSizing: 'border-box',
-          //overflowY: 'scroll',
+    <Box sx={{ width: '25%', float: 'right', height: '40vh', boxSizing: 'border-box' }}>
+      <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
+        User List
+      </Typography>
+
+      <Paper
+        elevation={3}
+        sx={{
+          border: '1px solid #ccc',
+          padding: 2,
+          height: '100%',
+          overflowY: 'auto',
         }}
       >
-        <ul style={{ listStyleType: "none", padding: 0 }}>
+        <List>
           {userList.map((user, index) => (
-            <li key={index} style={{ marginBottom: "5px" }}>
-              {user}
-            </li>
+            <ListItem key={index} sx={{ padding: '5px 0' }}>
+              <ListItemText primary={user} />
+            </ListItem>
           ))}
-        </ul>
-      </div>
-    </div>
+        </List>
+      </Paper>
+    </Box>
   );
 };
 

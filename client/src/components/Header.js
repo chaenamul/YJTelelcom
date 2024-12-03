@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "socket/socket";
+import { AppBar, Toolbar, Button, Box, Typography } from "@mui/material";
 
 function Header({ isConnected }) {
   const navigate = useNavigate();
@@ -15,49 +16,45 @@ function Header({ isConnected }) {
   }
 
   return (
-    <div style={{
-      backgroundColor: 'lightgrey',
-      padding: '20px',
-      display: 'flex',
-      justifyContent: 'space-between'
-    }}>
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        <div onClick={() => navigate('/main')} style={{ margin: '0px', cursor: 'pointer' }}>
-          Main
-        </div>
-        <div onClick={() => navigate('/settings')} style={{ margin: '0px', cursor: 'pointer' }}>
-          Settings
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button
-          style={{
-            height: '30px',
-            backgroundColor: isConnected ? '#007bff' : 'white',
-            color: isConnected ? 'white' : '#007bff',
-            border: '1px solid #007bff',
-            padding: '5px 10px',
-            cursor: 'pointer'
-          }}
-          onClick={connect}
-        >
-          Connect
-        </button>
-        <button
-          style={{
-            height: '30px',
-            backgroundColor: isConnected ? 'white' : '#007bff',
-            color: isConnected ? '#007bff' : 'white',
-            border: '1px solid #007bff',
-            padding: '5px 10px',
-            cursor: 'pointer'
-          }}
-          onClick={disconnect}
-        >
-          Disconnect
-        </button>
-      </div>
-    </div>
+    <AppBar position="static" sx={{ backgroundColor: "lightgrey", color: "black" }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        {/* Navigation Links */}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Typography
+            variant="h6"
+            sx={{ cursor: "pointer" }}
+            onClick={() => navigate("/main")}
+          >
+            Main
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{ cursor: "pointer" }}
+            onClick={() => navigate("/settings")}
+          >
+            Settings
+          </Typography>
+        </Box>
+
+        {/* Connect/Disconnect Buttons */}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Button
+            variant={isConnected ? "contained" : "outlined"}
+            color="primary"
+            onClick={connect}
+          >
+            Connect
+          </Button>
+          <Button
+            variant={isConnected ? "outlined" : "contained"}
+            color="primary"
+            onClick={disconnect}
+          >
+            Disconnect
+          </Button>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 }
 
