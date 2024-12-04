@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { BrowserRouter } from "react-router-dom";
+import { CssBaseline } from "@mui/material";
 import Router from "routes/Router";
 import { socket } from "socket/socket";
 import Header from 'components/Header';
+
 
 function App() {
   const [isConnected, setIsConnected] = useState(socket.connected);
@@ -34,6 +36,7 @@ function App() {
 
   return (
     <div>
+      <CssBaseline />
       <BrowserRouter>
         <Header isConnected={isConnected} />
         <Router />

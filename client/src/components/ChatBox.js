@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { socket } from 'socket/socket';
+import {
+  Box,
+  Typography,
+  TextField,
+  Button
+} from "@mui/material";
 
 const ChatBox = () => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [username, setUsername] = useState("");  // Username state
+  const [room, setRoom] = useState("");
   const bottomRef = useRef(null);
 
   // Listen for incoming messages
@@ -30,11 +37,16 @@ const ChatBox = () => {
       setUsername(data.username);  // Set the initial username
     });
 
+    socket.on("set_room", (data) => {
+      setRoom(data.room);
+    });
+
     // Clean up listeners on unmount
     return () => {
       socket.off("set_username");
+      socket.off("set_room");
     };
-  }, [username]);
+  }, [username, room]);
 
   // Handle message change with Shift+Enter for new lines
   const handleChange = (e) => {
@@ -72,56 +84,70 @@ const ChatBox = () => {
   };
 
   return (
-    <div
-      style={{
-        width: '80%',
-        height: '100vh',
-        float: 'left',
-        boxSizing: 'border-box',
+    <Box
+      sx={{
+        width: "80%",
+        height: "80vh",
+        float: "left",
+        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-around",
+        p: 2,
       }}
     >
-      <h2>Chat Room</h2>
-      <div
-        style={{
+      <Typography variant="h5" gutterBottom>
+        Chat Room - {room}
+      </Typography>
+      <Box
+        sx={{
           border: "1px solid #ccc",
-          padding: "10px",
-          marginBottom: "10px",
+          borderRadius: 1,
+          p: 2,
+          mb: 2,
           height: "80%",
-          //height: "60dvh",
-          overflowY: "scroll"
+          overflowY: "scroll",
         }}
       >
         {messages.map((msg, index) => (
-          <div key={index}>
-            <strong>{msg.sender}:</strong> {msg.text}
-          </div>
+          <Box key={index} sx={{ mb: 1 }}>
+            <Typography variant="body1">
+              <strong>{msg.sender}:</strong> {msg.text}
+            </Typography>
+          </Box>
         ))}
         <div ref={bottomRef} />
-      </div>
-      <div>
-        <label>Username:</label>
-        <input
-          type="text"
+      </Box>
+      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 2 }}>
+        <TextField
+          label="Username"
           value={username}
           onChange={handleUsernameChange}
-          onBlur={handleUsernameBlur}  // Trigger change when the input loses focus
+          onBlur={handleUsernameBlur}
+          size="small"
+          fullWidth
         />
-      </div>
-      <textarea
-        value={message}
-        disabled={socket.disconnected}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        placeholder="Type your message..."
-        style={{
-          width: "50%",
-          height: "50px"
-        }}
-      />
-      <button onClick={handleSendMessage} disabled={!message.trim()}>
-        Send
-      </button>
-    </div>
+      </Box>
+      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
+        <TextField
+          value={message}
+          disabled={socket.disconnected}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Type your message..."
+          multiline
+          rows={2}
+          sx={{ flex: 1 }}
+        />
+        <Button
+          variant="contained"
+          onClick={handleSendMessage}
+          disabled={!message.trim()}
+        >
+          Send
+        </Button>
+      </Box>
+    </Box>
   );
 };
 

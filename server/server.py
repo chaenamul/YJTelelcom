@@ -99,6 +99,9 @@ async def connect(sid, environ):
     # Send the username to client (initial nickname)
     await sio.emit('set_username', {'username': username}, room=sid)
 
+    # Send the room number
+    await sio.emit('set_room', {'room': room}, room=sid)
+
 # Handle username change
 
 

@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { socket } from 'socket/socket';
+import {
+  Box,
+  Typography
+} from "@mui/material";
 
 const UserListBox = () => {
   //const [username, setUsername] = useState("");
@@ -26,28 +30,36 @@ const UserListBox = () => {
   }, []);
   
   return (
-    <div>
-      <h2>User List</h2>
-      <div
-        style={{
-          width: '20%',
-          height: '40vh',
-          float: 'right',
+    <Box
+      sx={{
+        width: '20%',
+        height: '50vh',
+        float: 'right',
+        padding: 2,
+        paddingLeft: 0,
+        boxSizing: 'border-box',
+      }}
+    >
+      <Typography variant="h5" gutterBottom>
+        User List
+      </Typography>
+      <Box
+        sx={{
           border: "1px solid #ccc",
-          padding: "10px",
-          boxSizing: 'border-box',
-          //overflowY: 'scroll',
+          borderRadius: 1,
+          p: 2,
+          mb: 2,
+          height: "100%",
+          overflowY: "scroll",
         }}
       >
-        <ul style={{ listStyleType: "none", padding: 0 }}>
-          {userList.map((user, index) => (
-            <li key={index} style={{ marginBottom: "5px" }}>
-              {user}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+        {userList.map((user, index) => (
+          <Box key={index} sx={{ mb: 1 }}>
+            {user}
+          </Box>
+        ))}
+      </Box>
+    </Box>
   );
 };
 
