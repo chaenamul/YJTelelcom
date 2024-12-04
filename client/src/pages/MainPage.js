@@ -1,14 +1,15 @@
 import React from "react";
 import ChatBox from "components/ChatBox";
 import UserListBox from "components/UserListBox";
+import { Box } from "@mui/material";
 
 
 function MainPage() {
   return (
-    <div style={{ padding: '20px' }}>
+    <Box sx={{ display: "flex", flexDirection: "row" }}>
       <ChatBox />
       <UserListBox />
-    </div>
+    </Box>
   );
 }
 
