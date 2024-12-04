@@ -126,12 +126,6 @@ async def disconnect(sid):
     session = await sio.get_session(sid)
     room = session.get("room")
 
-    # room = None
-    # for r in sio.rooms(sid):
-    #     if r != sid: 
-    #         room = r
-    #         break
-
     if room:
         room_users[room].discard(sid)
         await update_user_list(room)
@@ -147,6 +141,16 @@ async def update_user_list(room):
     usernames = [user_list[sid] for sid in room_users[room] if sid in user_list]
     print(room_users)
     await sio.emit('update_user_list', {'users': usernames}, room=room)
+
+@sio.event
+async def reload_info(sid):
+    session = await sio.get_session(sid)
+    room = session.get("room")
+    username = session.get("username")
+    
+    if room:
+        await update_user_list(room)
+        await sio.emit('set_username', {'username': username}, room=sid)
 
 @sio.event
 async def send_message(sid, message):

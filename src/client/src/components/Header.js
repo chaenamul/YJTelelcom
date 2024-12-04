@@ -28,7 +28,10 @@ function Header({ isConnected }) {
       {/* Navigation Links */}
       <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
         <Typography
-          onClick={() => navigate("/main")}
+          onClick={() => {
+            navigate("/main");
+            socket.emit("reload_info")
+          }}
           sx={{
             cursor: "pointer",
             "&:hover": { textDecoration: "underline" },
