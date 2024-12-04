@@ -1,12 +1,13 @@
 import DummySettings from "components/DummySettings";
 import React from "react";
+import { Box } from "@mui/material";
 
 
 function SettingsPage() {
   return (
-    <div style={{ padding: '20px' }}>
+    <Box>
       <DummySettings />
-    </div>
+    </Box>
   );
 }
 

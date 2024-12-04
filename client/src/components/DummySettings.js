@@ -1,4 +1,11 @@
 import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Divider,
+} from "@mui/material";
 import { socket } from "socket/socket";
 
 const DummySettings = () => {
@@ -80,36 +87,45 @@ const DummySettings = () => {
     
 
     return (
-        <div>
-            <h3>Room Settings</h3>
-            {Object.entries(settings.rooms).map(([roomKey, roomData]) => (
-                <div key={roomKey}>
-                    <h4>{roomKey}</h4>
-                    <label htmlFor={`${roomKey}-least`}>
-                        Least IP:
-                    </label>
-                    <input
-                        type="text"
-                        id={`${roomKey}-least`}
-                        value={roomData.least}
-                        onChange={(event) => handleInputChange(roomKey, "least", event)}
-                        placeholder="Enter least IP"
-                    />
-                    <label htmlFor={`${roomKey}-greatest`}>
-                        Greatest IP:
-                    </label>
-                    <input
-                        type="text"
-                        id={`${roomKey}-greatest`}
-                        value={roomData.greatest}
-                        onChange={(event) => handleInputChange(roomKey, "greatest", event)}
-                        placeholder="Enter greatest IP"
-                    />
-                </div>
-            ))}
-            <button onClick={addRoom}>Add Room</button>
-            <button onClick={updateServerSettings}>Change</button>
-        </div>
+        <Box sx={{ p: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            Room Settings
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          {Object.entries(settings.rooms).map(([roomKey, roomData]) => (
+            <Box key={roomKey} sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                {roomKey}
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <TextField
+                  label="Least IP"
+                  variant="outlined"
+                  value={roomData.least}
+                  onChange={(event) => handleInputChange(roomKey, "least", event)}
+                  placeholder="Enter least IP"
+                  fullWidth
+                />
+                <TextField
+                  label="Greatest IP"
+                  variant="outlined"
+                  value={roomData.greatest}
+                  onChange={(event) => handleInputChange(roomKey, "greatest", event)}
+                  placeholder="Enter greatest IP"
+                  fullWidth
+                />
+              </Box>
+            </Box>
+          ))}
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button variant="contained" color="primary" onClick={addRoom}>
+              Add Room
+            </Button>
+            <Button variant="contained" color="secondary" onClick={updateServerSettings}>
+              Save Changes
+            </Button>
+          </Box>
+        </Box>
     );
 };
 

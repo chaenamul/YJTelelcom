@@ -1,16 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { BrowserRouter } from "react-router-dom";
-import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import { CssBaseline } from "@mui/material";
 import Router from "routes/Router";
 import { socket } from "socket/socket";
 import Header from 'components/Header';
 
-const theme = createTheme({
-  palette: {
-    mode: "light", // "dark"로 변경하면 다크 테마 적용 가능
-  },
-});
 
 function App() {
   const [isConnected, setIsConnected] = useState(socket.connected);
@@ -41,13 +36,11 @@ function App() {
 
   return (
     <div>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <BrowserRouter>
-          <Header isConnected={isConnected} />
-          <Router />
-        </BrowserRouter>
-      </ThemeProvider>
+      <CssBaseline />
+      <BrowserRouter>
+        <Header isConnected={isConnected} />
+        <Router />
+      </BrowserRouter>
     </div>
   );
 }

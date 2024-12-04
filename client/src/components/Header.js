@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Box, Button, Typography } from "@mui/material";
 import { socket } from "socket/socket";
 
 function Header({ isConnected }) {
@@ -10,54 +11,74 @@ function Header({ isConnected }) {
     socket.connect();
   }
 
-  function disconnect() {
-    socket.disconnect();
-  }
+  // function disconnect() {
+  //   socket.disconnect();
+  // }
 
   return (
-    <div style={{
-      backgroundColor: 'lightgrey',
-      padding: '20px',
-      display: 'flex',
-      justifyContent: 'space-between'
-    }}>
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        <div onClick={() => navigate('/main')} style={{ margin: '0px', cursor: 'pointer' }}>
+    <Box
+      sx={{
+        backgroundColor: "lightgrey",
+        p: 2,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      {/* Navigation Links */}
+      <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+        <Typography
+          onClick={() => navigate("/main")}
+          sx={{
+            cursor: "pointer",
+            "&:hover": { textDecoration: "underline" },
+          }}
+        >
           Main
-        </div>
-        <div onClick={() => navigate('/settings')} style={{ margin: '0px', cursor: 'pointer' }}>
+        </Typography>
+        <Typography
+          onClick={() => navigate("/settings")}
+          sx={{
+            cursor: "pointer",
+            "&:hover": { textDecoration: "underline" },
+          }}
+        >
           Settings
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button
-          style={{
-            height: '30px',
-            backgroundColor: isConnected ? '#007bff' : 'white',
-            color: isConnected ? 'white' : '#007bff',
-            border: '1px solid #007bff',
-            padding: '5px 10px',
-            cursor: 'pointer'
+        </Typography>
+      </Box>
+
+      {/* Connect/Disconnect Buttons */}
+      <Box sx={{ display: "flex", gap: 2 }}>
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: isConnected ? "#007bff" : "white",
+            color: isConnected ? "white" : "#007bff",
+            border: "1px solid #007bff",
+            "&:hover": {
+              backgroundColor: isConnected ? "#0056b3" : "#f0f8ff",
+            },
           }}
           onClick={connect}
         >
           Connect
-        </button>
-        <button
-          style={{
-            height: '30px',
-            backgroundColor: isConnected ? 'white' : '#007bff',
-            color: isConnected ? '#007bff' : 'white',
-            border: '1px solid #007bff',
-            padding: '5px 10px',
-            cursor: 'pointer'
+        </Button>
+        {/* <Button
+          variant="contained"
+          sx={{
+            backgroundColor: isConnected ? "white" : "#007bff",
+            color: isConnected ? "#007bff" : "white",
+            border: "1px solid #007bff",
+            "&:hover": {
+              backgroundColor: isConnected ? "#f0f8ff" : "#0056b3",
+            },
           }}
           onClick={disconnect}
         >
           Disconnect
-        </button>
-      </div>
-    </div>
+        </Button> */}
+      </Box>
+    </Box>
   );
 }
 
