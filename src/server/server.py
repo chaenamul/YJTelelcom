@@ -151,6 +151,7 @@ async def reload_info(sid):
     if room:
         await update_user_list(room)
         await sio.emit('set_username', {'username': username}, room=sid)
+        await sio.emit('set_room', {'room': room}, room=sid)
 
 @sio.event
 async def send_message(sid, message):

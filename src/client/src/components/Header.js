@@ -9,6 +9,7 @@ function Header({ isConnected }) {
   // socket
   function connect() {
     socket.connect();
+    socket.emit("reload_info")
   }
 
   // function disconnect() {
