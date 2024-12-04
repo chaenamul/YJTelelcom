@@ -5,6 +5,7 @@ const ChatBox = () => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [username, setUsername] = useState("");  // Username state
+  const [room, setRoom] = useState("");
   const bottomRef = useRef(null);
 
   // Listen for incoming messages
@@ -30,11 +31,16 @@ const ChatBox = () => {
       setUsername(data.username);  // Set the initial username
     });
 
+    socket.on("set_room", (data) => {
+      setRoom(data.room);
+    });
+
     // Clean up listeners on unmount
     return () => {
       socket.off("set_username");
+      socket.off("set_room");
     };
-  }, [username]);
+  }, [username, room]);
 
   // Handle message change with Shift+Enter for new lines
   const handleChange = (e) => {
@@ -80,7 +86,7 @@ const ChatBox = () => {
         boxSizing: 'border-box',
       }}
     >
-      <h2>Chat Room</h2>
+      <h2>Chat Room - {room}</h2>
       <div
         style={{
           border: "1px solid #ccc",
