@@ -1,1 +1,28 @@
 # For final ppt
+
+// Introduction (team info)
+We spent our meetings brainstorming and planning a practical project related to Virtual LANs. We decided to create a chatting service that automatically generates chat rooms based on VLAN membership. This concept eliminates the need for users to manually invite participants or leave chat rooms.
+
+To achieve this, we identified the need for a protocol that supports real-time, two-way communication over a single TCP connection. WebSocket was the perfect fit for our requirements, and we utilized the Socket.IO library to implement it.
+
+(Socket.IO is a powerful library that enables low-latency, bidirectional communication between a client and a server.  Also it automatically buffers packets when the client is disconnected, making the communication robust and resilient.)
+
+This practical project not only reinforced our understanding of VLANs but also showcased the power of Socket.IO for creating dynamic and interactive applications.
+
+// We used a structured Git Flow workflow:
+Our coding team divided tasks into clearly defined roles:
+
+User List Implementation:
+Client-Side (윤지현): Designed and implemented DOM elements to display the user list dynamically, with a listener to track and update changes in real time.
+Server-Side (박준후): Created logic to send updated user lists to all clients when changes occurred, ensuring real-time synchronization.
+
+Admin Page (VLAN Mimicry):
+Client-Side (우인서): Built a settings control panel for the admin to define and adjust VLAN configurations, and implemented functionality to send these updates to the server.
+Server-Side (박보건): Developed a listener for VLAN configuration updates and integrated the settings into the room assignment logic, dynamically applying changes.
+
+We also discussed mapping IP addresses to usernames to maintain user continuity during reconnections. And the feature that enables users to change their usernames.
+
+// Results and Conclusion
+The project successfully demonstrated the integration of VLAN segmentation with practical applications through a dynamic chat service. By automating chat room creation based on VLAN membership, we highlighted the potential for VLANs to go beyond network segmentation into user-centric solutions. Our use of Socket.IO ensured efficient, reliable, and interactive communication, making the solution robust and user-friendly.
+
+This collaborative effort deepened our understanding of both VLAN concepts and real-time communication protocols, equipping us with valuable insights for future networking and software projects.
