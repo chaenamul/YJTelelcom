@@ -3,8 +3,9 @@ COSE242 Data Communication Team Project
 
 ## Run Server
 need python and pip in advance   
-directory: YJTelecom\src\server   
+
 ```
+cd src\server
 pip install -r requirements.txt
 python server.py
 ```
@@ -14,12 +15,12 @@ need npm in advance
 
 ### Before Running
 find your IPv4 address from terminal   
-open .env   
+open .env (located directory: src\client)   
 replace (your_IP) with your IPv4 address found   
 save and run   
 
-directory: YJTelecom\src\client   
 ```
+cd src\client
 npm install
 npm start
 ```

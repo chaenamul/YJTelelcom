@@ -1,5 +1,8 @@
 # For final ppt
 
+google drive link of the ppt
+https://drive.google.com/drive/folders/1K8qMDHWsvXKaHYC1S2o06VhAaQzyAye0
+
 // Introduction (team info)
 We spent our meetings brainstorming and planning a practical project related to Virtual LANs. We decided to create a chatting service that automatically generates chat rooms based on VLAN membership. This concept eliminates the need for users to manually invite participants or leave chat rooms.
 
