@@ -193,7 +193,7 @@ async def update_settings(sid, rooms: dict):
 @sio.event
 async def get_settings(sid):
     print(f"Settings data sent by {sid}")
-    await sio.emit("receive_settings", {"status": "success", "settings": settings}, room=sid)
+    await sio.emit("receive_settings", {"status": "success", "settings": settings})
     
 
 async def change_room(sid, new_room):
@@ -209,6 +209,8 @@ async def change_room(sid, new_room):
 
     session.update({"room": new_room})
     await sio.save_session(sid, session)
+
+    await sio.emit('set_room', {'room': new_room}, room=sid)
 
 
 async def reassign_users():
@@ -228,6 +230,12 @@ async def reassign_users():
 
     for room in room_users:
         await update_user_list(room)
+
+@sio.event
+async def debug(sid):
+    for sid in user_list:
+        session = await sio.get_session(sid)
+        print(session)
 
 # Start ASGI app
 if __name__ == "__main__":

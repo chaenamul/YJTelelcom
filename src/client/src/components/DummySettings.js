@@ -124,6 +124,9 @@ const DummySettings = () => {
             <Button variant="contained" color="secondary" onClick={updateServerSettings}>
               Save Changes
             </Button>
+            <Button variant="contained" onClick={() => {socket.emit("debug")}}>
+              Debug
+            </Button>
           </Box>
         </Box>
     );
