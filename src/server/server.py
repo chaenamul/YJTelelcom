@@ -46,13 +46,10 @@ settings = {
 
 # Function to generate a random username
 
-
 def generate_username():
     return 'user_' + ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
 
 # Function to assign a room based on IP address
-
-
 def assign_room(ip_address: str) -> str:
     try:
         # 방 정보 가져오기
@@ -67,10 +64,6 @@ def assign_room(ip_address: str) -> str:
             current_ip = ipaddress.ip_address(ip_address)  # 현재 IP
 
             if least_ip <= current_ip <= greatest_ip:
-                # 일단 비활성화. 유사시 복구
-                # if room_name not in room_users:
-                #     room_users[room_name] = set()
-                #     print("room_users: ", room_users)
                 return room_name  # 범위에 맞는 방 이름 반환
 
         return "room0"  # 범위에 맞는 방이 없을 경우 기본 방 반환
@@ -81,27 +74,22 @@ def assign_room(ip_address: str) -> str:
 # Socket.IO connection event
 @sio.event
 async def connect(sid, environ):
-    ip_address = environ.get("REMOTE_ADDR")  # Extract client's IP address
     username = generate_username()  # Generate a random username
-    # initialize sid session
-    await sio.save_session(sid, {"username": username, "ip_address": ip_address})
-
-    user_list[sid] = username  # Store the username with sid
-    room = assign_room(ip_address)  # Determine room based on IP
-    print('connected from: ' + ip_address + ' to ' + room)
-
-    # Make sure the user joins the room
+    await sio.emit('set_username', {'username': username}, room=sid)
+    # print(environ)
+    ip_address = environ['asgi.scope']['client'][0]
+    session = {
+        "username": username,
+        "ip_address": ip_address,
+        "isAdmin": environ['asgi.scope']['server'][0] == ip_address
+    }
+    await sio.save_session(sid, session)
+    user_list[sid] = username
+    room = assign_room(ip_address)
     await change_room(sid, room)
 
-    # 사용자들에게 업데이트 된 사용자 목록 전송
     await update_user_list(room)
-
-    # Send the username to client (initial nickname)
-    await sio.emit('set_username', {'username': username}, room=sid)
-
-    # Send the room number
-    await sio.emit('set_room', {'room': room}, room=sid)
-
+    print(username + " connected, ip_address: " + ip_address + ", assigned to " + room)
 # Handle username change
 
 
@@ -115,9 +103,6 @@ async def change_username(sid, new_username):
         room = session.get("room")
         if room:
             await update_user_list(room)  # 업데이트된 사용자 목록 전송
-# Handle incoming messages
-
-# 특정 room에 있는 username을 알려줍니다.
 
 # 연결이 끊어진 경우 실헹
 @sio.event
@@ -216,7 +201,6 @@ async def change_room(sid, new_room):
 async def reassign_users():
     for sid in user_list:
         session = await sio.get_session(sid)
-        #사용지의 ip 주소를 확인합니다.
         ip_address = session.get('ip_address')
         if ip_address:
             # assign room을 활용하여 새로운 방을 할당합니다
@@ -225,19 +209,24 @@ async def reassign_users():
         else:
             print(f"No IP address found for sid {sid}")
 
-    # 업데이트된 room_user 정보를 전송합니다. -> 프론트 로직에 따라
-    # 변경이 필요할 수 있을 것 같습니다.
-
     for room in room_users:
         await update_user_list(room)
 
 @sio.event
+async def check_admin(sid):
+    session = await sio.get_session(sid)
+    isAdmin = session.get('isAdmin')
+    await sio.emit('check_admin', {'isAdmin': isAdmin}, room=sid)
+
+@sio.event
 async def debug(sid):
+    print("***users***")
     for sid in user_list:
         session = await sio.get_session(sid)
         print(session)
+    print("***********")
 
 # Start ASGI app
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(sio_app, host="localhost", port=8000)
+    uvicorn.run(sio_app, host="0.0.0.0", port=8000)
