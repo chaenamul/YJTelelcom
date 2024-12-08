@@ -1,3 +1,0 @@
-# For demo video
-- must be 2 minutes
-- add google drive link if size>10MB
