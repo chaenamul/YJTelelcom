@@ -169,6 +169,7 @@ async def update_settings(sid, rooms: dict):
         # 사용자 재할당을 진행합니다.
         await reassign_users()
         print(f"Room settings updated by {sid}: {rooms}")
+        await sio.emit("receive_settings", {"status": "success", "settings": settings})
         return {"status": "success", "rooms": rooms}
     except Exception as e:
         print(f"Error updating room settings: {str(e)}")

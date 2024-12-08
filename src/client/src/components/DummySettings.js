@@ -27,11 +27,16 @@ const DummySettings = () => {
             }
         });
 
+
         // Clean up listeners on unmount
         return () => {
             socket.off("receive_settings");
         };
     }, []);
+
+    useEffect(() => {
+      socket.emit("get_settings");
+    }, [])
 
     const updateServerSettings = () => {
         const { rooms } = settings;
@@ -92,6 +97,20 @@ const DummySettings = () => {
             Room Settings
           </Typography>
           <Divider sx={{ mb: 2 }} />
+          {/* <Typography variant="h6" gutterBottom>
+            {roomKey}
+          </Typography> */}
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button variant="contained" color="primary" onClick={addRoom}>
+              Add Room
+            </Button>
+            <Button variant="contained" color="secondary" onClick={updateServerSettings}>
+              Save Changes
+            </Button>
+            <Button variant="contained" onClick={() => {socket.emit("debug")}}>
+              Debug
+            </Button>
+          </Box>
           {Object.entries(settings.rooms).map(([roomKey, roomData]) => (
             <Box key={roomKey} sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom>
@@ -117,17 +136,6 @@ const DummySettings = () => {
               </Box>
             </Box>
           ))}
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Button variant="contained" color="primary" onClick={addRoom}>
-              Add Room
-            </Button>
-            <Button variant="contained" color="secondary" onClick={updateServerSettings}>
-              Save Changes
-            </Button>
-            <Button variant="contained" onClick={() => {socket.emit("debug")}}>
-              Debug
-            </Button>
-          </Box>
         </Box>
     );
 };
